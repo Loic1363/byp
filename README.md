@@ -1,11 +1,14 @@
-# VoteFlow
+# byp
 
 Browser automation tool with a local web interface. Handles click orchestration, OCR-based timer detection, and CAPTCHA verification through a browser extension — controlled from a Flask server running on the local network.
 
+This runs on a Raspberry Pi 5, 24/7. The target OS is **Ubuntu 26.04 LTS** — Ubuntu 24 is not compatible. A dedicated **HDMI dummy plug** is required so the display server stays active when no monitor is connected; without it, screen capture and pyautogui will not work.
+
 ## Requirements
 
+- Raspberry Pi 5, Ubuntu 26.04 LTS
 - Python 3.10+
-- Linux (X11), Raspberry Pi compatible
+- X11 display (HDMI dummy plug required for headless operation)
 - A Chromium-based browser with the solver extension installed
 
 ## Setup
