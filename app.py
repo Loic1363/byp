@@ -15,7 +15,7 @@ import src.utils.system     # noqa: F401
 import src.utils.streaming  # noqa: F401
 
 import pyautogui
-from flask import Flask, Response, jsonify, render_template, request, send_file, stream_with_context
+from flask import Flask, Response, jsonify, request, send_file, stream_with_context
 from PIL import Image
 
 from src.core.automation import VERIFY_PATH, run_launch_cycle

@@ -7,7 +7,7 @@ import numpy as np
 import pyautogui
 
 from src.core.status import (
-    get_status, launch_stop, set_status, sleep, wait_interruptible,
+    launch_stop, set_status, sleep, wait_interruptible,
 )
 from src.utils.ocr import parse_global_count, parse_wait_seconds, read_text_region
 from src.utils.screen import abs_point, grab_region, invalidate_screen_cache
