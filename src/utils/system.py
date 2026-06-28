@@ -36,11 +36,10 @@ def setup_wayland() -> None:
 def mock_mouseinfo() -> None:
     """Inject a stub mouseinfo module to prevent pyautogui from crashing on import."""
     stub = types.ModuleType("mouseinfo")
-    stub.mouseInfo = lambda: None  # type: ignore
+    stub.mouseInfo = lambda: None
     sys.modules.setdefault("mouseinfo", stub)
 
 
-# Applied at import time — callers just need `import src.utils.system`.
 setup_xauth()
 setup_wayland()
 mock_mouseinfo()

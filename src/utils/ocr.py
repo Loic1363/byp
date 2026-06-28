@@ -18,7 +18,6 @@ def read_text_region(mon_index: int, region: dict) -> str:
     The captured image is saved to last_message.png for debugging.
     The image is doubled in size before OCR to improve recognition accuracy.
     """
-    # Lazy import — PyTorch/EasyOCR is heavy and should not load at server startup
     from src.solvers.captcha import get_reader
 
     img = grab_region(mon_index, region["x"], region["y"], region["w"], region["h"])
@@ -63,7 +62,6 @@ def parse_wait_seconds(text: str) -> int | None:
     hours = mins = secs = 0
     found = False
 
-    # Format: HH:MM:SS, HH.MM.SS, "H : MM : SS", "H : MM.SS" etc.
     m = re.search(r'(\d+)\s*[:.]\s*(\d+)\s*[:.]\s*(\d+)', t)
     if m:
         h_, mn, sc = int(m.group(1)), int(m.group(2)), int(m.group(3))
@@ -71,14 +69,12 @@ def parse_wait_seconds(text: str) -> int | None:
             hours, mins, secs = h_, mn, sc
             found = True
     if not found and re.search(r'(\d+)\s*[:.]\s*(\d+)', t):
-        # Fallback H:MM — OCR a raté les secondes (ex: "02.13:" lu à la place de "2:11:12")
         m = re.search(r'(\d+)\s*[:.]\s*(\d+)', t)
         h_, mn = int(m.group(1)), int(m.group(2))
         if mn <= 59:
             hours, mins = h_, mn
             found = True
     if not found:
-        # Natural-language French: "1 heure", "2 heures", bare "heure" (OCR missed the "1")
         m = re.search(r'(\d+)\s*heures?', t)
         if m:
             hours = int(m.group(1))
@@ -104,6 +100,6 @@ def parse_wait_seconds(text: str) -> int | None:
     if raw > 6 * 3600:
         print(f"  Délai ignoré — {hours}h {mins}m {secs}s > 6h, OCR garbage")
         return None
-    total = raw + 15   # +15 s safety margin
+    total = raw + 15
     print(f"  Délai parsé : {hours}h {mins}m {secs}s → {total}s")
     return total

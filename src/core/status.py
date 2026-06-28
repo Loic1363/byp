@@ -2,11 +2,8 @@
 import threading
 import time
 
-# Live state read by the /status route and written by the automation loop
 _loop_status: dict = {"state": "idle", "msg": "", "cycle": 0, "wait_until": 0}
 
-# launch_stop  — set to signal the current cycle to abort
-# launch_mutex — ensures only one cycle runs at a time
 launch_stop  = threading.Event()
 launch_mutex = threading.Lock()
 

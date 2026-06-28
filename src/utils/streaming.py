@@ -4,7 +4,6 @@ import sys
 import threading
 from collections import deque
 
-# Shared state accessed by the Flask /stream route and the automation loop
 log_lock:    threading.Lock = threading.Lock()
 log_history: deque          = deque(maxlen=500)
 log_queues:  list           = []
@@ -47,5 +46,4 @@ class TeeStream:
     def fileno(self):   return self._orig.fileno()
 
 
-# Redirect stdout at import time so all subsequent print() calls are captured.
 sys.stdout = TeeStream(sys.stdout)

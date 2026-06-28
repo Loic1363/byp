@@ -11,12 +11,11 @@ import mss
 import numpy as np
 from PIL import Image
 
-# Per-frame cache — avoids repeated captures within a short window
-_screen_cache: list = [0.0, None]   # [timestamp, Image]
+_screen_cache: list = [0.0, None]
 _SCREEN_TTL   = 3.0
 _grab_lock    = threading.Lock()
 
-_CAPTURE_TMP  = "/tmp/voteflow_capture.png"   # fixed path, overwritten each time
+_CAPTURE_TMP  = "/tmp/voteflow_capture.png"
 
 
 def invalidate_screen_cache() -> None:
@@ -44,7 +43,7 @@ def _grab_via_grim() -> "Image.Image | None":
                 print(f"  [capture] grim OK ({img.width}×{img.height})")
                 return img
     except FileNotFoundError:
-        pass   # grim not installed — silent
+        pass
     except Exception as e:
         print(f"  [capture] grim échoué : {e}")
     return None
@@ -86,7 +85,7 @@ def _grab_via_portal() -> "Image.Image | None":
                         if os.path.getsize(f) == size:
                             img = Image.open(f).convert("RGB")
                             img.load()
-                            os.unlink(f)   # supprime immédiatement — pas d'accumulation
+                            os.unlink(f)
                             if np.array(img).mean() > 5:
                                 print(f"  [capture] portail OK ({img.width}×{img.height})")
                                 return img
@@ -145,7 +144,6 @@ def screen_size() -> tuple[int, int]:
                 return m["width"], m["height"]
     except Exception:
         pass
-    # Fallback: parse grim output dimensions from a quick capture
     try:
         img = _grab_via_grim()
         if img:

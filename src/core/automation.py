@@ -87,12 +87,11 @@ def run_launch_cycle(
     use_pre      = bool(url_pre and pt_pre)
     final_status = "unknown"
     cycle        = 0
-    open_pages   = 0   # tracks how many browser tabs are open (for cleanup on abort)
+    open_pages   = 0
 
     set_status("running", "Démarrage…")
 
     while True:
-        # ── Abort check ───────────────────────────────────────────────────────
         if launch_stop.is_set():
             break
 
@@ -104,7 +103,6 @@ def run_launch_cycle(
         set_status("running", f"Cycle {cycle} — ouverture navigateur…", cycle)
 
         try:
-            # ── Step 1: open URL 1 (pre-step), read timer + global countdown ──
             if use_pre:
                 subprocess.Popen(["xdg-open", url_pre])
                 open_pages = 1
@@ -113,11 +111,9 @@ def run_launch_cycle(
                     continue
                 invalidate_screen_cache()
 
-                # 1a — Check timer zone (e.g. vote cooldown displayed on the page)
                 if r_pre_timer:
                     set_status("running", f"Cycle {cycle} — lecture timer URL 1…", cycle)
                     timer_text = read_text_region(mon_index, r_pre_timer)
-                    # Show global count if readable from the same capture (parse_global_count logs it)
                     parse_global_count(timer_text)
                     wait_pre   = parse_wait_seconds(timer_text)
                     if wait_pre is not None:
@@ -130,7 +126,6 @@ def run_launch_cycle(
                         wait_interruptible()
                         continue
 
-                # 1b — Check global countdown zone (e.g. "3/8" — skip if quota full)
                 if r_decompte:
                     set_status("running", f"Cycle {cycle} — lecture décompte global…", cycle)
                     count_text = read_text_region(mon_index, r_decompte)
@@ -150,7 +145,6 @@ def run_launch_cycle(
                     else:
                         print("  Décompte global illisible — on continue quand même…")
 
-                # 1c — Click pre-step point
                 px, py = abs_point(mon_index, pt_pre["x"], pt_pre["y"])
                 pyautogui.click(px, py)
                 open_pages = 2
@@ -163,7 +157,6 @@ def run_launch_cycle(
                 continue
             invalidate_screen_cache()
 
-            # ── Step 2: click try (opens / reveals the CAPTCHA widget) ─────────
             if pt_try:
                 set_status("running", f"Cycle {cycle} — clic try…", cycle)
                 tx, ty = abs_point(mon_index, pt_try["x"], pt_try["y"])
@@ -172,7 +165,6 @@ def run_launch_cycle(
                 if not sleep(delay_click):
                     continue
 
-            # ── Step 3: click extension (triggers the CAPTCHA solver extension) ─
             if pt_exten:
                 set_status("running", f"Cycle {cycle} — clic extension…", cycle)
                 ex, ey = abs_point(mon_index, pt_exten["x"], pt_exten["y"])
@@ -181,7 +173,6 @@ def run_launch_cycle(
                 if not sleep(delay_exten):
                     continue
 
-            # ── Step 4: verify zone 1 — green pixels confirm CAPTCHA is solved ─
             if r_check1:
                 set_status("running", f"Cycle {cycle} — vérif zone captcha…", cycle)
                 invalidate_screen_cache()
@@ -204,7 +195,6 @@ def run_launch_cycle(
                     wait_interruptible()
                     continue
 
-            # ── Step 5: click validate ────────────────────────────────────────
             if pt_validate:
                 set_status("running", f"Cycle {cycle} — clic valider…", cycle)
                 vx, vy = abs_point(mon_index, pt_validate["x"], pt_validate["y"])
@@ -216,7 +206,6 @@ def run_launch_cycle(
             if launch_stop.is_set():
                 continue
 
-            # ── Step 6: close pages and wait for next cycle ──────────────────
             close_pages(use_pre)
             open_pages   = 0
             final_status = "success"

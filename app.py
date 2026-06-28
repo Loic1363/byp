@@ -9,13 +9,8 @@ import queue as _queue_mod
 import time
 from pathlib import Path
 
-# Suppress Werkzeug access logs ("GET /status 200") before Flask is imported —
-# they would otherwise spam the SSE stream every 3 s.
 _logging.getLogger('werkzeug').setLevel(_logging.ERROR)
 
-# Boot-time side effects — order matters:
-#   1. system.py  : sets XAUTHORITY + patches mouseinfo before pyautogui loads
-#   2. streaming.py: replaces sys.stdout with TeeStream before any print() call
 import src.utils.system     # noqa: F401
 import src.utils.streaming  # noqa: F401
 
@@ -34,25 +29,20 @@ pyautogui.FAILSAFE = False
 
 _ROOT                = Path(__file__).parent
 SAVE_PATH            = _ROOT / "last_capture.png"
-SCREENSHOT_PATH      = _ROOT / "last_screenshot.png"       # URL 2
-SCREENSHOT_URL1_PATH = _ROOT / "last_screenshot_url1.png"  # URL 1
+SCREENSHOT_PATH      = _ROOT / "last_screenshot.png"
+SCREENSHOT_URL1_PATH = _ROOT / "last_screenshot_url1.png"
 PLACEHOLDER_PATH     = _ROOT / "assets" / "placeholder.png"
 CONFIG_PATH          = _ROOT / "config.json"
 MESSAGE_PATH         = _ROOT / "last_message.png"
 
-# Generate the placeholder image once at startup if it doesn't exist yet
 ensure_placeholder(PLACEHOLDER_PATH)
 
-
-# ─── Pages ────────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
     return send_file(_ROOT / "templates" / "voteflow.html", mimetype="text/html")
 
 
-
-# ─── Status & control ─────────────────────────────────────────────────────────
 
 @app.route("/monitors", methods=["GET"])
 def monitors():
@@ -67,7 +57,7 @@ def loop_status():
 @app.route("/skip_wait", methods=["POST"])
 def skip_wait():
     """Advance the inter-cycle timer to 'now + 3 s' so the loop restarts shortly."""
-    status = get_status()   # returns the live dict by reference
+    status = get_status()
     if status["state"] == "waiting":
         status["wait_until"] = time.time() + 3
         print("  [monitor] Timer avancé — relance dans 3s…")
@@ -84,7 +74,6 @@ def get_config():
             cfg = json.loads(CONFIG_PATH.read_text())
         except Exception:
             pass
-    # Inject capture state derived from disk — immune to localStorage origin mismatch
     cfg["_captures"] = {
         "url1": "done" if SCREENSHOT_URL1_PATH.exists() else None,
         "url2": "done" if SCREENSHOT_PATH.exists() else None,
@@ -106,8 +95,6 @@ def stop():
     print("  [monitor] Arrêt demandé…")
     return jsonify({"ok": True})
 
-
-# ─── SSE log stream ───────────────────────────────────────────────────────────
 
 @app.route("/stream")
 def log_stream():
@@ -137,8 +124,6 @@ def log_stream():
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
-
-# ─── Image endpoints ──────────────────────────────────────────────────────────
 
 @app.route("/img/capture")
 def img_capture_route():
@@ -191,8 +176,6 @@ def last_screenshot():
     return jsonify({"image": to_b64(img), "width": img.width, "height": img.height})
 
 
-# ─── Automation ───────────────────────────────────────────────────────────────
-
 @app.route("/launch", methods=["POST"])
 def launch():
     """Start (or restart) the automation cycle with the parameters from the UI."""
@@ -215,8 +198,6 @@ def launch():
     delay_error    = int(data.get("delay_error", 300))
     mon_index      = int(data.get("monitor", 1))
 
-    # Always override zones/clicks from server-side config.json — authoritative source,
-    # immune to browser cache or stale localStorage values.
     if CONFIG_PATH.exists():
         try:
             cfg_data  = json.loads(CONFIG_PATH.read_text())
@@ -248,7 +229,6 @@ def launch():
         except Exception as e:
             print(f"  [config] Impossible de lire config.json : {e}")
 
-    # Signal any running cycle to stop, then wait for the mutex
     launch_stop.set()
     if not launch_mutex.acquire(timeout=30.0):
         return jsonify({"error": "Impossible d'arrêter le cycle précédent"}), 503
@@ -268,8 +248,6 @@ def launch():
 
     return jsonify({"status": final_status, "cycles": cycle})
 
-
-# ─── Entry point ──────────────────────────────────────────────────────────────
 
 def _get_lan_ip() -> str:
     try:

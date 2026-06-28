@@ -12,7 +12,6 @@ from PIL import Image
 
 _reader = None
 
-# Debug variants are written here when solve_captcha(save_debug=True) is used
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEBUG_DIR     = _PROJECT_ROOT / "assets" / "debug"
 
@@ -21,7 +20,7 @@ def get_reader():
     """Return the shared EasyOCR Reader, initialising it on first call."""
     global _reader
     if _reader is None:
-        import easyocr   # lazy — PyTorch takes several seconds to load
+        import easyocr
         _reader = easyocr.Reader(['en'], gpu=False, verbose=False)
     return _reader
 
@@ -53,28 +52,20 @@ def preprocess_image(image_input, save_debug: bool = False) -> list[np.ndarray]:
     gray  = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
 
-    # Variant 1: CLAHE contrast enhancement on greyscale
     v1_clahe    = clahe.apply(gray)
-    # Variant 2: global Otsu threshold
     _, v2_otsu  = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    # Variant 3: adaptive Gaussian threshold
     v3_adaptive = cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
     )
-    # Variant 4: HSV value channel + CLAHE
     hsv        = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     v4_v_clahe = clahe.apply(hsv[:, :, 2])
-    # Variant 5: original colour image (no preprocessing)
     v5_color   = img
 
-    # Variant 6: sharpen kernel + Otsu
     sharpen_k     = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]], dtype=np.float32)
     v6_sharp      = cv2.filter2D(gray, -1, sharpen_k)
     v6_sharp_otsu = cv2.threshold(v6_sharp, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    # Variant 7: bilateral filter (edge-preserving smoothing) + CLAHE
     v7_bilateral  = cv2.bilateralFilter(gray, 9, 75, 75)
     v7            = clahe.apply(v7_bilateral)
-    # Variant 8: fast non-local means denoising + Otsu
     v8_denoised   = cv2.fastNlMeansDenoising(gray, h=10)
     v8            = cv2.threshold(v8_denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
@@ -127,7 +118,6 @@ def solve_captcha(image_input, min_confidence: float = 0.2, save_debug: bool = F
     if not candidates:
         return ""
 
-    # Sum confidences per unique candidate and pick the highest
     scores: dict[str, float] = {}
     for text, conf in candidates:
         scores[text] = scores.get(text, 0.0) + conf
