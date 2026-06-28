@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 .env
+config.json
 last_capture.png
 last_screenshot.png
 last_screenshot_url1.png
