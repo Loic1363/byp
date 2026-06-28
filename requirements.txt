@@ -1,0 +1,7 @@
+easyocr
+opencv-python
+Pillow
+numpy
+flask
+mss
+pyautogui

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+last_capture.png
+last_screenshot.png
+last_screenshot_url1.png
+last_verify.png
+last_message.png
