@@ -51,10 +51,6 @@ def index():
     return send_file(_ROOT / "templates" / "voteflow.html", mimetype="text/html")
 
 
-@app.route("/monitor")
-def monitor():
-    return render_template("monitor.html")
-
 
 # ─── Status & control ─────────────────────────────────────────────────────────
 
@@ -295,5 +291,4 @@ if __name__ == "__main__":
     print(f"\nInterfaces disponibles :")
     print(f"  Local   → http://127.0.0.1:5000")
     print(f"  Réseau  → http://{lan}:5000")
-    print(f"  Monitor → http://{lan}:5000/monitor\n")
     app.run(debug=False, host="0.0.0.0", port=5000, threaded=True)
