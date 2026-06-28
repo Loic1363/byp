@@ -1,42 +1,45 @@
-# bp_captcha
+# VoteFlow
 
-Automated CAPTCHA solving and browser click orchestration, controlled through a
-local Flask web interface.
+Browser automation tool with a local web interface. Handles click orchestration, OCR-based timer detection, and CAPTCHA verification through a browser extension — controlled from a Flask server running on the local network.
+
+## Requirements
+
+- Python 3.10+
+- Linux (X11), Raspberry Pi compatible
+- A Chromium-based browser with the solver extension installed
 
 ## Setup
-
-Install system dependencies and create the Python virtualenv:
 
 ```bash
 bash setup.sh
 ```
 
-## Run
+Installs system packages (`libgl1`, `xdg-utils`, `scrot`...) and creates a virtualenv with all Python dependencies.
+
+## Usage
 
 ```bash
 bash run.sh
 ```
 
-Then open **http://localhost:5000** in your browser.
-The live log monitor is at **http://localhost:5000/monitor**.
+Open `http://localhost:5000` or the LAN address printed at startup.
 
-## Usage
+**Configuration tab** — take a screenshot of each target page, then place zones and click points on the canvas:
 
-1. Go to the **Configuration** tab.
-2. Click **Capturer URL 1** (optional) or **Capturer URL 2** to take a screenshot of the target page.
-3. On the screenshot canvas, mark the click points and verification zones:
-   - Pre-step click (optional URL 1 button)
-   - timer zone on URL 1 (optional)
-   - Try click — opens the CAPTCHA widget
-   - Extension click — triggers the solver extension
-   - Verification zone — green pixels confirm the CAPTCHA is solved
-   - Validate click — submits the form
-   - Result zone — contains the timer or success message
-4. Adjust the delay sliders as needed.
-5. Click **▶ Lancer** to start the loop.
-6. Open **/monitor** in a second tab for a real-time log view.
+- Pre-step click and timer zone (URL 1)
+- Try / Extension / Validate click points (URL 2)
+- CAPTCHA verification zone (green pixel detection)
+
+Adjust delay sliders to match your setup, then hit Start.
+
+**Dashboard** — live vote count, success rate, and captcha stats, broken down by day / week / month.
+
+**Terminal** — real-time log stream from the worker.
+
+## How it works
+
+The automation loop opens URL 1, reads any cooldown timer via EasyOCR, then proceeds to URL 2 where it triggers the solver extension and waits for a green pixel in the CAPTCHA zone. On success it clicks validate and waits for the configured retry interval before the next cycle. Timers up to 6 hours are respected; anything above is treated as an OCR misread and falls back to the default interval.
 
 ## Dependencies
 
-See [requirements.txt](requirements.txt).
-Key packages: Flask · EasyOCR · OpenCV · Pillow · mss · pyautogui
+Flask, EasyOCR, Pillow, mss, pyautogui, numpy, opencv-python.
