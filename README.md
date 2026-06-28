@@ -39,10 +39,6 @@ Adjust delay sliders to match your setup, then hit Start.
 
 **Terminal** — real-time log stream from the worker.
 
-## How it works
-
-The automation loop opens URL 1, reads any cooldown timer via EasyOCR, then proceeds to URL 2 where it triggers the solver extension and waits for a green pixel in the CAPTCHA zone. On success it clicks validate and waits for the configured retry interval before the next cycle. Timers up to 6 hours are respected; anything above is treated as an OCR misread and falls back to the default interval.
-
 ## Dependencies
 
 Flask, EasyOCR, Pillow, mss, pyautogui, numpy, opencv-python.
