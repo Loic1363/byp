@@ -337,10 +337,11 @@ function rangeData(state) {
   let series, total, title, xlabels, curIdx, days, successSum = 0;
 
   if (state.range === 'jour') {
-    series      = (hrs.date === todayKey() ? hrs.h : new Array(24).fill(0)).slice();
-    total       = series.reduce((a, b) => a + b, 0);
-    successSum  = total;
-    title       = "Aujourd'hui · par heure";
+    series           = (hrs.date === todayKey() ? hrs.h : new Array(24).fill(0)).slice();
+    const todayVotes = votes[todayKey()] || { s: 0, f: 0 };
+    total            = todayVotes.s + todayVotes.f;
+    successSum       = todayVotes.s;
+    title            = "Aujourd'hui · par heure";
     xlabels     = ['00h', '06h', '12h', '18h', '23h'];
     curIdx      = now.getHours();
     days        = 1;
@@ -1293,7 +1294,7 @@ const App = {
   state: {
     authed:       !VF_REQUIRE_LOGIN,
     view:         'demarrage',
-    range:        'semaine',
+    range:        'jour',
     chartStyle:   'bars',
     settingsTab:  'delais',
     configView:   'url1',

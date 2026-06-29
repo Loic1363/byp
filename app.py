@@ -25,6 +25,7 @@ from src.utils.screen import get_monitors, grab_monitor, to_b64
 from src.utils.streaming import log_history, log_lock, log_queues
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 pyautogui.FAILSAFE = False
 
 _ROOT                = Path(__file__).parent
