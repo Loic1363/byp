@@ -81,11 +81,14 @@ const DELAY_DEFS = [
 /* ============================================================
    NAVIGATION
    ============================================================ */
+const _lIcon = (inner) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+
 const NAV_ITEMS = [
-  { key: 'demarrage', label: 'Démarrage',     icon: '▷' },
-  { key: 'dashboard', label: "Vue d'ensemble", icon: '▦' },
-  { key: 'terminal',  label: 'Terminal',       icon: '▤' },
-  { key: 'settings',  label: 'Réglages',       icon: '⚙' },
+  { key: 'demarrage', label: 'Démarrage',     icon: _lIcon('<polygon points="6 3 20 12 6 21 6 3"/>') },
+  { key: 'dashboard', label: "Vue d'ensemble", icon: _lIcon('<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>') },
+  { key: 'terminal',  label: 'Terminal',       icon: _lIcon('<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>') },
+  { key: 'settings',  label: 'Réglages',       icon: _lIcon('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>') },
 ];
 
 /* ============================================================
@@ -638,7 +641,7 @@ function viewLogin() {
 
             <label style="font-size:12px;font-weight:600;color:${COLOR.textMid};display:block;margin-bottom:7px">Mot de passe</label>
             <div style="display:flex;align-items:center;gap:8px;border:1px solid ${COLOR.border};border-radius:9px;padding:0 12px;background:#fff;height:44px">
-              <span style="color:#b3a98f;font-size:14px">🔒</span>
+              <span style="color:#b3a98f;display:flex;align-items:center">${_lIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>')}</span>
               <input id="vf-pwd" type="password" placeholder="••••••••"
                 onkeydown="if(event.key==='Enter') App.act('login')"
                 style="border:none;outline:none;flex:1;font:400 14px IBM Plex Sans,sans-serif;color:${COLOR.text};background:transparent">
@@ -665,7 +668,7 @@ function sidebar(state) {
              background:${isActive ? '#fff' : 'transparent'};
              color:${isActive ? COLOR.goldDark : COLOR.muted};
              box-shadow:${isActive ? '0 1px 2px rgba(60,48,20,.1)' : 'none'}">
-      <span style="font-size:14px">${icon}</span>${label}
+      <span style="display:flex;align-items:center;flex-shrink:0">${icon}</span>${label}
     </button>`;
   }).join('');
 
@@ -679,7 +682,10 @@ function sidebar(state) {
       <div style="margin-top:auto">
         <button data-action="lock"
           style="width:100%;height:32px;border:1px solid ${COLOR.border};background:${COLOR.cream};border-radius:7px;font:600 12px IBM Plex Sans,sans-serif;color:${COLOR.muted};cursor:pointer">
-          🔒 Verrouiller
+          <span style="display:flex;align-items:center;gap:6px;justify-content:center">${state.authed
+            ? _lIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>') + ' Verrouiller'
+            : _lIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>') + ' Déverrouiller'
+          }</span>
         </button>
       </div>
     </div>`;
@@ -999,15 +1005,19 @@ function viewTerminal(state) {
 }
 
 function viewSettings(state) {
-  const TABS = [['delais', '⏱ Délais'], ['urls', '🔗 URLs'], ['config', '⚙ Config']];
+  const TABS = [
+    ['delais', _lIcon('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'), 'Délais'],
+    ['urls',   _lIcon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'), 'URLs'],
+    ['config', _lIcon('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>'), 'Config'],
+  ];
 
-  const tabButtons = TABS.map(([key, label]) => {
+  const tabButtons = TABS.map(([key, icon, label]) => {
     const isActive = state.settingsTab === key;
     return `<button data-action="settingsTab" data-arg="${key}"
-      style="padding:7px 16px;border:none;border-radius:7px;cursor:pointer;font:600 12px IBM Plex Sans,sans-serif;white-space:nowrap;
+      style="display:flex;align-items:center;gap:6px;padding:7px 16px;border:none;border-radius:7px;cursor:pointer;font:600 12px IBM Plex Sans,sans-serif;white-space:nowrap;
              background:${isActive ? '#fff' : 'transparent'};
              color:${isActive ? COLOR.goldDark : COLOR.muted2};
-             box-shadow:${isActive ? '0 1px 2px rgba(60,48,20,.18)' : 'none'}">${label}</button>`;
+             box-shadow:${isActive ? '0 1px 2px rgba(60,48,20,.18)' : 'none'}">${icon}${label}</button>`;
   }).join('');
 
   let body = '';
@@ -1108,7 +1118,7 @@ function settingsUrls(state) {
         </div>
         <div style="display:flex;align-items:center;gap:10px">
           <div style="flex:1;display:flex;align-items:center;gap:9px;border:1px solid ${COLOR.border};border-radius:9px;padding:0 13px;background:${COLOR.cream};height:44px">
-            <span style="color:#b3a98f;font-size:13px">🔗</span>
+            <span style="color:#b3a98f;display:flex;align-items:center">${_lIcon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>')}</span>
             <input type="text" data-input="url" data-key="${field.key}"
               value="${esc(state.urls[field.key])}" placeholder="${field.placeholder}"
               class="mono" style="border:none;outline:none;flex:1;font-size:13px;color:${COLOR.text};background:transparent">
