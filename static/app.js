@@ -755,7 +755,7 @@ function viewDashboard(state) {
   const success     = Math.round(d.success);
   const fail        = total - success;
   const rate        = total ? (success / total * 100).toFixed(1) : '0.0';
-  const cap         = state.capCount;
+  const cap         = { solved: success, failed: fail };
   const capTotal    = cap.solved + cap.failed;
   const capRate     = capTotal ? (cap.solved / capTotal * 100) : 0;
   const perDay      = (total / d.days).toFixed(d.days === 1 ? 0 : 1);
