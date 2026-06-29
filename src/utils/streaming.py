@@ -1,9 +1,23 @@
 """Server-Sent Events broadcast and stdout tee for the /stream endpoint."""
+import logging
+import logging.handlers
 import queue as _queue_mod
 import sys
 import threading
 from collections import deque
 from datetime import datetime
+from pathlib import Path
+
+_LOG_DIR = Path(__file__).resolve().parent.parent.parent / "logs"
+_LOG_DIR.mkdir(exist_ok=True)
+_file_handler = logging.handlers.TimedRotatingFileHandler(
+    _LOG_DIR / "bpcp.log", when="midnight", backupCount=7, encoding="utf-8",
+)
+_file_handler.setFormatter(logging.Formatter("%(message)s"))
+_file_logger = logging.getLogger("bpcp.stream")
+_file_logger.addHandler(_file_handler)
+_file_logger.setLevel(logging.DEBUG)
+_file_logger.propagate = False
 
 log_lock:    threading.Lock = threading.Lock()
 log_history: deque          = deque(maxlen=2000)
@@ -42,6 +56,7 @@ class TeeStream:
                 entry = f"[{ts}] {clean}"
                 log_history.append(entry)
                 broadcast("log", entry)
+                _file_logger.info(entry)
         return len(msg)
 
     def flush(self):    self._orig.flush()

@@ -1,0 +1,27 @@
+[Unit]
+Description=byp — worker for voting
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/bpcp
+ExecStart=%h/bpcp/.venv/bin/python3 %h/bpcp/app.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=graphical-session.target
+
+# ──────────────────────────────────────────────
+# Installation :
+#
+#   mkdir -p ~/.config/systemd/user
+#   ln -s ~/bpcp/bpcp.service ~/.config/systemd/user/
+#   systemctl --user enable --now bpcp
+#
+# Usefull commands :
+#   systemctl --user status bpcp
+#   systemctl --user restart bpcp
+#   journalctl --user -u bpcp -f
+# ──────────────────────────────────────────────
