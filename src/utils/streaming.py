@@ -3,9 +3,10 @@ import queue as _queue_mod
 import sys
 import threading
 from collections import deque
+from datetime import datetime
 
 log_lock:    threading.Lock = threading.Lock()
-log_history: deque          = deque(maxlen=500)
+log_history: deque          = deque(maxlen=2000)
 log_queues:  list           = []
 
 
@@ -37,8 +38,10 @@ class TeeStream:
             line, self._buf = self._buf.split("\n", 1)
             clean = line.rstrip()
             if clean:
-                log_history.append(clean)
-                broadcast("log", clean)
+                ts    = datetime.now().strftime('%H:%M:%S')
+                entry = f"[{ts}] {clean}"
+                log_history.append(entry)
+                broadcast("log", entry)
         return len(msg)
 
     def flush(self):    self._orig.flush()

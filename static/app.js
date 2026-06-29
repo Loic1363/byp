@@ -905,7 +905,7 @@ function viewDashboard(state) {
 function viewTerminal(state) {
   const source   = state.frozen && state.pinned ? state.pinned : state.logs;
   const filtered = state.filter === 'all' ? source : source.filter(l => l.type === state.filter);
-  const visible  = filtered.slice(-60);
+  const visible  = filtered.slice(-300);
 
   const logLines = visible.map(l => `
     <div style="display:flex;gap:11px;padding:2px 0;white-space:nowrap">
@@ -1323,10 +1323,13 @@ const App = {
   /* ---------- HOOKS TEMPS RÉEL ---------- */
 
   onLog(text) {
-    const type = classifyLog(text);
-    const log  = { id: ++this._id, t: nowClock(), type, msg: String(text) };
+    const tsMatch = /^\[(\d{2}:\d{2}:\d{2})\] /.exec(text);
+    const t   = tsMatch ? tsMatch[1] : nowClock();
+    const msg = tsMatch ? text.slice(tsMatch[0].length) : String(text);
+    const type = classifyLog(msg);
+    const log  = { id: ++this._id, t, type, msg };
     this.state.logs.push(log);
-    if (this.state.logs.length > 400) this.state.logs = this.state.logs.slice(-400);
+    if (this.state.logs.length > 2000) this.state.logs = this.state.logs.slice(-2000);
 
     const voteResult    = voteOutcome(text);
     const captchaResult = captchaOutcome(text);
@@ -1670,7 +1673,7 @@ const App = {
       <span style="color:${LOG_COLOR[log.type]};font-weight:500;min-width:38px">${LOG_TAG[log.type]}</span>
       <span style="color:#c9d1d9;overflow:hidden;text-overflow:ellipsis">${esc(log.msg)}</span>`;
     body.insertBefore(div, caret);
-    while (body.children.length > 60) body.removeChild(body.firstChild);
+    while (body.children.length > 300) body.removeChild(body.firstChild);
     this.scrollTermBottom();
   },
 

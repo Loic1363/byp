@@ -104,7 +104,7 @@ def log_stream():
         with log_lock:
             log_queues.append(q)
         try:
-            for line in list(log_history)[-150:]:
+            for line in list(log_history):
                 yield f"event: log\ndata: {line}\n\n"
             while True:
                 try:
