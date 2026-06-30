@@ -20,6 +20,7 @@ from PIL import Image
 
 from src.core.automation import VERIFY_PATH, run_launch_cycle
 from src.core.status import get_status, launch_mutex, launch_stop
+import src.core.watchdog as _watchdog
 from src.utils.assets import ensure_placeholder
 from src.utils.screen import get_monitors, grab_monitor, to_b64
 from src.utils.streaming import log_history, log_lock, log_queues
@@ -104,6 +105,7 @@ def hours_endpoint():
 def stop():
     """Signal the running automation cycle to stop."""
     launch_stop.set()
+    _watchdog.stop()
     print("  [monitor] Arrêt demandé…")
     return jsonify({"ok": True})
 
@@ -241,22 +243,27 @@ def launch():
         except Exception as e:
             print(f"  [config] Impossible de lire config.json : {e}")
 
+    launch_kwargs = dict(
+        url=url, url_pre=url_pre, pt_pre=pt_pre, delay_pre=delay_pre,
+        r_pre_timer=r_pre_timer, r_decompte=r_decompte,
+        pt_try=pt_try, pt_exten=pt_exten,
+        r_check1=r_check1, pt_validate=pt_validate,
+        delay=delay, delay_click=delay_click, delay_exten=delay_exten,
+        delay_final_ok=delay_final_ok, delay_retry=delay_retry, delay_error=delay_error, mon_index=mon_index,
+    )
+
     launch_stop.set()
+    _watchdog.stop()
     if not launch_mutex.acquire(timeout=30.0):
         return jsonify({"error": "Impossible d'arrêter le cycle précédent"}), 503
     launch_stop.clear()
 
+    _watchdog.start(run_launch_cycle, launch_kwargs)
     try:
-        final_status, cycle = run_launch_cycle(
-            url=url, url_pre=url_pre, pt_pre=pt_pre, delay_pre=delay_pre,
-            r_pre_timer=r_pre_timer, r_decompte=r_decompte,
-            pt_try=pt_try, pt_exten=pt_exten,
-            r_check1=r_check1, pt_validate=pt_validate,
-            delay=delay, delay_click=delay_click, delay_exten=delay_exten,
-            delay_final_ok=delay_final_ok, delay_retry=delay_retry, delay_error=delay_error, mon_index=mon_index,
-        )
+        final_status, cycle = run_launch_cycle(**launch_kwargs)
     finally:
         launch_mutex.release()
+        _watchdog.stop()
 
     return jsonify({"status": final_status, "cycles": cycle})
 

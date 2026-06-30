@@ -2,7 +2,7 @@
 import threading
 import time
 
-_loop_status: dict = {"state": "idle", "msg": "", "cycle": 0, "wait_until": 0}
+_loop_status: dict = {"state": "idle", "msg": "", "cycle": 0, "wait_until": 0, "last_heartbeat": 0.0}
 
 launch_stop  = threading.Event()
 launch_mutex = threading.Lock()
@@ -13,6 +13,8 @@ def set_status(state: str, msg: str, cycle: int = 0, wait_until: float = 0.0) ->
     _loop_status["msg"]        = msg
     _loop_status["cycle"]      = cycle
     _loop_status["wait_until"] = wait_until
+    if state == "running":
+        _loop_status["last_heartbeat"] = time.time()
 
 
 def get_status() -> dict:
