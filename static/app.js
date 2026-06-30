@@ -107,10 +107,11 @@ const Backend = {
       this._es.addEventListener('log',         (e) => App.onLog(e.data));
       this._es.addEventListener('message_img', ()  => App.onMessageImg());
       this._es.addEventListener('vote', (e) => {
-        const { date, s, f } = JSON.parse(e.data);
+        const { date, s, f, hrs } = JSON.parse(e.data);
         const votes = Store.get('vf_votes', {});
         votes[date] = { s, f };
         Store.set('vf_votes', votes);
+        if (hrs) Store.set('vf_hours', { date, h: hrs });
         if (App.state.view === 'dashboard') App.render();
       });
       this._es.onmessage = (e) => App.onLog(e.data);
@@ -155,15 +156,16 @@ const Backend = {
   },
 
   loadVotes() {
-    return fetch('/votes', { cache: 'no-store' })
-      .then(r => r.json())
-      .then(serverVotes => {
-        const local = Store.get('vf_votes', {});
-        Object.assign(local, serverVotes);
-        Store.set('vf_votes', local);
-        if (App.state.view === 'dashboard') App.render();
-      })
-      .catch(() => {});
+    return Promise.all([
+      fetch('/votes', { cache: 'no-store' }).then(r => r.json()).catch(() => ({})),
+      fetch('/hours', { cache: 'no-store' }).then(r => r.json()).catch(() => ({})),
+    ]).then(([serverVotes, serverHours]) => {
+      const local = Store.get('vf_votes', {});
+      Object.assign(local, serverVotes);
+      Store.set('vf_votes', local);
+      if (serverHours.date) Store.set('vf_hours', serverHours);
+      if (App.state.view === 'dashboard') App.render();
+    });
   },
 
   saveConfig(config) {
