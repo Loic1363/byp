@@ -618,9 +618,12 @@ function viewLogin() {
 
         <!-- Panneau gauche -->
         <div style="width:460px;background:${COLOR.brand};color:#f6efdf;padding:52px 48px;display:flex;flex-direction:column;justify-content:space-between">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:30px;height:30px;border-radius:8px;background:#f6efdf;color:${COLOR.brand};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">V</div>
-            <span style="font-weight:600;font-size:18px;letter-spacing:-.01em">VoteFlow</span>
+          <div>
+            <a class="byp-logo byp-logo--dark" href="/" aria-label="byp">
+              <span class="byp-logo__prompt" aria-hidden="true">&gt;</span>
+              <span class="byp-logo__word">byp</span>
+              <span class="byp-logo__cursor" aria-hidden="true"></span>
+            </a>
           </div>
           <div>
             <div style="font-size:30px;font-weight:700;line-height:1.15;letter-spacing:-.02em">Votre console<br>de vote, en local.</div>
@@ -675,8 +678,11 @@ function sidebar(state) {
   return `
     <div style="width:212px;background:${COLOR.cream};border-right:1px solid rgba(60,48,20,.08);padding:20px 16px;display:flex;flex-direction:column;flex-shrink:0">
       <div style="display:flex;align-items:center;gap:9px;margin-bottom:26px;padding:0 4px">
-        <div style="width:26px;height:26px;border-radius:7px;background:${COLOR.gold};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px">V</div>
-        <span style="font-weight:600;font-size:16px;color:${COLOR.text}">VoteFlow</span>
+        <a class="byp-logo" href="/" aria-label="byp">
+          <span class="byp-logo__prompt" aria-hidden="true">&gt;</span>
+          <span class="byp-logo__word">byp</span>
+          <span class="byp-logo__cursor" aria-hidden="true"></span>
+        </a>
       </div>
       ${items}
       <div style="margin-top:auto">
