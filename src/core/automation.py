@@ -12,6 +12,7 @@ from src.core.status import (
 from src.utils.ocr import parse_global_count, parse_wait_seconds, read_text_region
 from src.utils.screen import abs_point, grab_region, invalidate_screen_cache
 from src.utils.streaming import broadcast
+from src.utils.votes import record_vote
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 VERIFY_PATH   = _PROJECT_ROOT / "last_verify.png"
@@ -186,6 +187,7 @@ def run_launch_cycle(
                 print(f"  Zone captcha : {icon1}")
 
                 if check1 != "success":
+                    record_vote('failure')
                     close_pages(use_pre)
                     open_pages = 0
                     until      = time.time() + delay_error
@@ -208,6 +210,7 @@ def run_launch_cycle(
 
             close_pages(use_pre)
             open_pages   = 0
+            record_vote('success')
             final_status = "success"
             until        = time.time() + delay_retry
             until_str    = time.strftime("%H:%M:%S", time.localtime(until))

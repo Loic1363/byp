@@ -106,6 +106,13 @@ const Backend = {
       setTimeout(() => { this._replaying = false; }, 2000);
       this._es.addEventListener('log',         (e) => App.onLog(e.data));
       this._es.addEventListener('message_img', ()  => App.onMessageImg());
+      this._es.addEventListener('vote', (e) => {
+        const { date, s, f } = JSON.parse(e.data);
+        const votes = Store.get('vf_votes', {});
+        votes[date] = { s, f };
+        Store.set('vf_votes', votes);
+        if (App.state.view === 'dashboard') App.render();
+      });
       this._es.onmessage = (e) => App.onLog(e.data);
       this._es.onerror   = () => {};
     } catch (err) {
@@ -145,6 +152,18 @@ const Backend = {
     return fetch('/config', { cache: 'no-store' })
       .then(r => r.json())
       .catch(() => null);
+  },
+
+  loadVotes() {
+    return fetch('/votes', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(serverVotes => {
+        const local = Store.get('vf_votes', {});
+        Object.assign(local, serverVotes);
+        Store.set('vf_votes', local);
+        if (App.state.view === 'dashboard') App.render();
+      })
+      .catch(() => {});
   },
 
   saveConfig(config) {
@@ -1351,7 +1370,7 @@ const App = {
     const voteResult    = voteOutcome(text);
     const captchaResult = captchaOutcome(text);
 
-    if (voteResult && !Backend._replaying) recordVote(voteResult);
+    if (voteResult && !Backend._replaying && App.state.view === 'dashboard') App.render();
     if (captchaResult === 'solved') this.state.capCount.solved++;
     if (captchaResult === 'failed') this.state.capCount.failed++;
 
@@ -1625,6 +1644,7 @@ const App = {
 
     this.render();
     Backend.loadConfig().then(config => { this._applyServerConfig(config); if (config && Object.keys(config).length) this.render(); });
+    Backend.loadVotes();
     setInterval(() => { this.state.nowSec = Math.floor(Date.now() / 1000); this.paintTimer(); this.paintClock(); }, 1000);
     Backend.connectLogStream();
     Backend.startStatusPolling();

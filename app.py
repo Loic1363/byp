@@ -23,6 +23,7 @@ from src.core.status import get_status, launch_mutex, launch_stop
 from src.utils.assets import ensure_placeholder
 from src.utils.screen import get_monitors, grab_monitor, to_b64
 from src.utils.streaming import log_history, log_lock, log_queues
+from src.utils.votes import get_votes
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -87,6 +88,11 @@ def save_config():
     """Persist UI config sent by the browser."""
     CONFIG_PATH.write_text(json.dumps(request.json))
     return jsonify({"ok": True})
+
+
+@app.route("/votes", methods=["GET"])
+def votes_endpoint():
+    return jsonify(get_votes())
 
 
 @app.route("/stop", methods=["POST"])
