@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 114 40" width="114" height="40" role="img" aria-label="byp">
+  
+  <text x="2" y="29" class="byp-w" fill="#9F7420">&gt;</text>
+  <text x="38" y="29" class="byp-w" fill="#211C12">byp</text>
+  <rect class="byp-cur" x="96" y="9" width="9" height="23" rx="1.5" fill="#D6A845"></rect>
+</svg>
