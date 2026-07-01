@@ -1,14 +1,15 @@
-# byp
+<img src="static/img/byp-mark.svg" width="36" height="36" alt="byp"> byp
+===
 
-Browser automation tool with a local web interface. Handles click orchestration, OCR-based timer detection, and CAPTCHA verification through a browser extension — controlled from a Flask server running on the local network.
+Browser automation tool with a local web interface, built to run 24/7 on a Raspberry Pi 5.
 
-This runs on a Raspberry Pi 5, 24/7. The target OS is **Ubuntu 26.04 LTS** — Ubuntu 24 is not compatible. A dedicated **HDMI dummy plug** is required so the display server stays active when no monitor is connected; without it, screen capture and pyautogui will not work.
+The target OS is **Ubuntu 26.04 LTS** (Ubuntu 24 is not compatible). A dedicated **HDMI dummy plug** is required so the display server stays active when no monitor is connected.
 
 ## Requirements
 
 - Raspberry Pi 5, Ubuntu 26.04 LTS
 - Python 3.10+
-- X11 display (HDMI dummy plug required for headless operation)
+- X11 display (HDMI dummy plug for headless operation)
 - A Chromium-based browser with the solver extension installed
 
 ## Setup
@@ -17,7 +18,7 @@ This runs on a Raspberry Pi 5, 24/7. The target OS is **Ubuntu 26.04 LTS** — U
 bash setup.sh
 ```
 
-Installs system packages (`libgl1`, `xdg-utils`, `scrot`...) and creates a virtualenv with all Python dependencies.
+Installs system packages and creates a virtualenv with all Python dependencies.
 
 ## Usage
 
@@ -27,17 +28,23 @@ bash run.sh
 
 Open `http://localhost:5000` or the LAN address printed at startup.
 
-**Configuration tab** — take a screenshot of each target page, then place zones and click points on the canvas:
+## Features
 
-- Pre-step click and timer zone (URL 1)
-- Try / Extension / Validate click points (URL 2)
-- CAPTCHA verification zone (green pixel detection)
+**Dashboard** — live vote count, success rate, and hourly breakdown across multiple time ranges (day, week, month, all-time).
 
-Adjust delay sliders to match your setup, then hit Start.
+**Configuration** — screenshot each target page, then place zones and click points directly on the canvas. Delay sliders let you tune timing per step.
 
-**Dashboard** — live vote count, success rate, and captcha stats, broken down by day / week / month.
+**Terminal** — real-time log stream from the worker thread.
 
-**Terminal** — real-time log stream from the worker.
+**Watchdog** — background thread that detects stuck automation cycles and restarts them automatically.
+
+**RAM monitor** — stops the cycle before the system runs out of memory.
+
+**Flyer mode** — alternate click and zone positions for a configurable period each month, when the target page layout shifts.
+
+## Architecture
+
+Flask server on the backend, single-page JS frontend communicating over SSE for live log streaming and vote events. Vote counts are persisted server-side so they survive browser closes and reboots.
 
 ## Dependencies
 
