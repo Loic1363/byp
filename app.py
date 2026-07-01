@@ -21,6 +21,7 @@ from PIL import Image
 from src.core.automation import VERIFY_PATH, run_launch_cycle
 from src.core.status import get_status, launch_mutex, launch_stop
 import src.core.watchdog as _watchdog
+from src.core.resources import _monitor as _resource_monitor
 from src.utils.assets import ensure_placeholder
 from src.utils.screen import get_monitors, grab_monitor, to_b64
 from src.utils.streaming import log_history, log_lock, log_queues
@@ -231,10 +232,23 @@ def launch():
                 if not z or z.get("type") != "click": return None
                 return {"x": round(z["x"]/100*W), "y": round(z["y"]/100*H)}
 
-            r_pre_timer = _reg("timer1")   or r_pre_timer
+            from datetime import date as _date
+            _day          = _date.today().day
+            _delays       = cfg_data.get("delays", {})
+            _flyer_start  = int(_delays.get("flyer_start", 1))
+            _flyer_end    = int(_delays.get("flyer_end",  15))
+            _flyer_active = _flyer_start <= _day <= _flyer_end
+
+            if _flyer_active:
+                r_pre_timer = _reg("zone_X3")  or _reg("timer1")   or r_pre_timer
+                pt_pre      = _pt("clic_X3")   or _pt("preetape")  or pt_pre
+                print(f"  [config] Période flyer active (jour {_day}, du {_flyer_start} au {_flyer_end}) — zones flyer utilisées")
+            else:
+                r_pre_timer = _reg("timer1")   or r_pre_timer
+                pt_pre      = _pt("preetape")  or pt_pre
+
             r_decompte  = _reg("decompte") or r_decompte
             r_check1    = _reg("captcha")  or r_check1
-            pt_pre      = _pt("preetape")  or pt_pre
             pt_try      = _pt("try")       or pt_try
             pt_exten    = _pt("ext")       or pt_exten
             pt_validate = _pt("valider")   or pt_validate
@@ -281,6 +295,7 @@ def _get_lan_ip() -> str:
 
 
 if __name__ == "__main__":
+    _resource_monitor.start()
     print("Écrans détectés :")
     for m in get_monitors():
         print(f"  Écran {m['index']} — {m['width']}×{m['height']}  offset({m['left']},{m['top']})")

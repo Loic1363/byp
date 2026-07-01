@@ -55,9 +55,11 @@ const STATUS_META = {
    ZONES PAR DÉFAUT
    ============================================================ */
 const ZONES_DEFAULT = [
-  { id: 'decompte', name: 'Zone décompte global', type: 'zone',  page: 'url1', x: 5,  y: 6,  w: 24, h: 13 },
-  { id: 'preetape', name: 'Clic pré-étape',       type: 'click', page: 'url1', x: 40, y: 22 },
-  { id: 'timer1',   name: 'Zone Timer URL 1',     type: 'zone',  page: 'url1', x: 60, y: 7,  w: 22, h: 13 },
+  { id: 'decompte',       name: 'Zone décompte global',          type: 'zone',  page: 'url1', x: 5,  y: 6,  w: 24, h: 13 },
+  { id: 'preetape',       name: 'Clic pré-étape',                type: 'click', page: 'url1', x: 40, y: 22 },
+  { id: 'timer1',         name: 'Zone Timer URL 1',              type: 'zone',  page: 'url1', x: 60, y: 7,  w: 22, h: 13 },
+  { id: 'clic_X3', name: 'Clic pré-étape (flyer)',   type: 'click', page: 'url1', x: 40, y: 22 },
+  { id: 'zone_X3', name: 'Zone Timer URL 1 (flyer)', type: 'zone',  page: 'url1', x: 60, y: 7,  w: 22, h: 13 },
   { id: 'try',      name: 'Clic try',             type: 'click', page: 'url2', x: 24, y: 30 },
   { id: 'ext',      name: 'Clic extension',       type: 'click', page: 'url2', x: 50, y: 30 },
   { id: 'captcha',  name: 'Zone vérif captcha',   type: 'zone',  page: 'url2', x: 30, y: 42, w: 38, h: 28 },
@@ -1096,6 +1098,27 @@ function settingsDelais(state) {
       <div style="background:#fff;border:1px solid rgba(60,48,20,.1);border-radius:13px;padding:6px 22px;box-shadow:0 1px 2px rgba(60,48,20,.05)">
         ${rows}
       </div>
+      <div style="background:#fff;border:1px solid rgba(60,48,20,.1);border-radius:13px;padding:16px 22px;box-shadow:0 1px 2px rgba(60,48,20,.05);margin-top:14px">
+        <div style="font-size:14px;font-weight:600;color:${COLOR.text};margin-bottom:4px">Période flyer</div>
+        <div style="font-size:12px;color:${COLOR.muted2};margin-bottom:14px">Active les zones "flyer" (clic pré-étape + timer URL 1) sur la plage de jours configurée.</div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:13px;color:${COLOR.text}">
+          Du jour
+          <input type="number" data-input="flyer" data-key="flyer_start"
+            value="${state.delays.flyer_start ?? 1}" min="1" max="31"
+            style="width:56px;padding:6px 8px;border:1px solid ${COLOR.border};border-radius:7px;font:600 13px IBM Plex Mono,monospace;color:${COLOR.goldDark};text-align:center;background:#fff">
+          au jour
+          <input type="number" data-input="flyer" data-key="flyer_end"
+            value="${state.delays.flyer_end ?? 15}" min="1" max="31"
+            style="width:56px;padding:6px 8px;border:1px solid ${COLOR.border};border-radius:7px;font:600 13px IBM Plex Mono,monospace;color:${COLOR.goldDark};text-align:center;background:#fff">
+          du mois
+          <span class="mono" style="font-size:11px;color:${COLOR.gold};margin-left:8px">${(() => {
+            const d = new Date().getDate();
+            const s = state.delays.flyer_start ?? 1;
+            const e = state.delays.flyer_end ?? 15;
+            return d >= s && d <= e ? '● actif aujourd\'hui' : '○ inactif aujourd\'hui';
+          })()}</span>
+        </div>
+      </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 2px 24px">
         <button data-action="resetDelais"
           style="font:600 13px IBM Plex Sans,sans-serif;padding:9px 16px;border-radius:9px;border:1px solid ${COLOR.border};background:#fff;color:${COLOR.muted};cursor:pointer">
@@ -1336,9 +1359,15 @@ const App = {
     settingsTab:  'delais',
     configView:   'url1',
     selectedZone: 'decompte',
-    zones:        Store.get('vf_zones',        ZONES_DEFAULT.map(z => Object.assign({}, z))),
+    zones:        (() => {
+      const saved = Store.get('vf_zones', null);
+      if (!saved) return ZONES_DEFAULT.map(z => Object.assign({}, z));
+      const ids = new Set(saved.map(z => z.id));
+      const merged = [...saved, ...ZONES_DEFAULT.filter(z => !ids.has(z.id)).map(z => Object.assign({}, z))];
+      return merged;
+    })(),
     defaultZones: Store.get('vf_default_zones', null),
-    delays:       Store.get('vf_delays',       { url1: 5, url2: 3, try: 2, ext: 2, wait: 30, result: 2, error: 3 }),
+    delays:       Store.get('vf_delays',       { url1: 5, url2: 3, try: 2, ext: 2, wait: 30, result: 2, error: 3, flyer_start: 1, flyer_end: 15 }),
     urls:         Store.get('vf_urls',         { url1: '', url2: '' }),
     captures:     Store.get('vf_captures',     { url1: null, url2: null }),
     logs:         [],
@@ -1531,6 +1560,13 @@ const App = {
       this._syncConfig();
     }
 
+    if (kind === 'flyer') {
+      state.delays[key] = Math.max(1, Math.min(31, parseInt(el.value) || 1));
+      Store.set('vf_delays', state.delays);
+      this._syncConfig();
+      this.render();
+    }
+
     if (kind === 'delay') {
       const value = parseFloat(el.value);
       state.delays[key] = value;
@@ -1628,7 +1664,12 @@ const App = {
     if (!config || !Object.keys(config).length) return;
     if (config.urls)         { this.state.urls         = config.urls;         Store.set('vf_urls',          config.urls);         }
     if (config.delays)       { this.state.delays       = config.delays;       Store.set('vf_delays',        config.delays);       }
-    if (config.zones)        { this.state.zones        = config.zones;        Store.set('vf_zones',         config.zones);        }
+    if (config.zones)        {
+      const ids    = new Set(config.zones.map(z => z.id));
+      const merged = [...config.zones, ...ZONES_DEFAULT.filter(z => !ids.has(z.id)).map(z => Object.assign({}, z))];
+      this.state.zones = merged;
+      Store.set('vf_zones', merged);
+    }
     if (config.defaultZones) { this.state.defaultZones = config.defaultZones; Store.set('vf_default_zones', config.defaultZones); }
     if (config._captures)    { this.state.captures     = config._captures;    Store.set('vf_captures',      config._captures);    }
   },
